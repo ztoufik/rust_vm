@@ -1,16 +1,16 @@
 #[derive(Debug, Clone, PartialEq)]
-pub enum MemLoc {
-    Const(String),
-    Var(String),
+pub enum MemLoc<'a> {
+    Const(&'a str),
+    Var(&'a str),
 }
 
-impl MemLoc {
-    pub fn memloc_const(value: &str) -> MemLoc {
-        MemLoc::Const(value.to_owned())
+impl<'a> MemLoc<'a> {
+    pub fn memloc_const(value: &'a str) -> Self {
+        MemLoc::Const(value)
     }
 
-    pub fn memloc_var(value: &str) -> MemLoc {
-        MemLoc::Var(value.to_owned())
+    pub fn memloc_var(value: &'a str) -> Self {
+        MemLoc::Var(value)
     }
 }
 
@@ -20,14 +20,14 @@ mod test {
 
     #[test]
     fn memloc_const() {
-        let variable=MemLoc::Const("const".to_owned());
-        assert_eq!(variable, MemLoc::Const("const".to_owned()));
+        let variable=MemLoc::Const("const");
+        assert_eq!(variable, MemLoc::Const("const"));
     }
 
     #[test]
     fn memloc_var() {
-        let variable=MemLoc::Var("var".to_owned());
-        assert_eq!(variable, MemLoc::Var("var".to_owned()));
+        let variable=MemLoc::Var("var");
+        assert_eq!(variable, MemLoc::Var("var"));
     }
 
 }
