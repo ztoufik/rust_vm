@@ -1,12 +1,11 @@
 #[derive(Debug, Clone, PartialEq)]
-pub struct Source {
-    source_file: String,
+pub struct Source<'a> {
+    source_file: &'a str,
     line_number: u32,
 }
 
-impl Source{
-   pub fn new(source_file:&str,line_number:u32)->Self{
-       let source_file = source_file.to_owned();
-    Self { source_file, line_number: line_number }
+impl<'a> Source<'a>{
+   pub fn new(source_file:&'a str,line_number:u32)->Self{
+    Self { source_file, line_number }
    }
 }
