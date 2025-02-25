@@ -16,7 +16,7 @@ impl MemLoc {
 
 #[cfg(test)]
 mod test {
-    use crate::vm::memloc::*;
+    use crate::memloc::*;
 
     #[test]
     fn memloc_const() {

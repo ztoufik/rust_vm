@@ -1,10 +1,6 @@
-pub mod vm;
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn it_works() {
-        assert_eq!(0, 0);
-    }
-}
+mod vobj;
+mod memloc;
+mod instruction;
+mod program;
+mod err;
+mod vm;
