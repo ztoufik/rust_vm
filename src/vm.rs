@@ -34,7 +34,7 @@ impl<'a> Vm<'a> {
                     operand1,
                     str_repr,
                     src,
-                } =>  (self.execute_load_w(operand1),str_repr,src),
+                } =>  (self.execute_load_w(&operand1),str_repr,src),
                 _=> todo!("implement other instructions executions"),
 
             };
@@ -47,11 +47,24 @@ impl<'a> Vm<'a> {
 
     fn execute_load_w(
         &mut self,
-        operand1: MemLoc,
+        operand1: &MemLoc,
     ) -> Result<(), String> {
         let value1=self.search_ident(&operand1)?;
         self.accu=value1.clone();
         Ok(())
+    }
+
+    fn execute_load_wm(
+        &mut self,
+        operand1: &'a MemLoc,
+    ) -> Result<(), String> {
+        match operand1{
+            MemLoc::Var(ident)=>{
+                self.vars.insert(ident, self.accu.clone());
+                Ok(())
+            },
+            MemLoc::Const(ident)=> Err(format!("{} expected variable, found const",ident)),
+        }
     }
 
     fn search_ident(&self, mem_loc: &MemLoc) -> Result<&Vobj, String> {
