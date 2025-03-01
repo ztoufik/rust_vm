@@ -29,6 +29,7 @@ impl fmt::Display for MemLoc {
         write!(f, "{}", self.ident())
     }
 }
+
 #[cfg(test)]
 mod test {
     use crate::memloc::*;

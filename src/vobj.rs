@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, PartialEq)]
+use std::fmt;
+
+#[derive(Debug,Clone, PartialEq)]
 pub enum Vobj {
     Str(String),
     Double(f64),
@@ -23,6 +25,17 @@ impl Vobj {
 impl Default for Vobj {
     fn default() -> Self {
         Vobj::Null
+    }
+}
+
+impl fmt::Display for Vobj {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self{
+        Self::Str(value)=>write!(f, "{}", value),
+        Self::Double(value)=>write!(f, "{}", value),
+        Self::Int(value)=>write!(f, "{}", value),
+        Self::Null=> write!(f,""),
+        }
     }
 }
 
