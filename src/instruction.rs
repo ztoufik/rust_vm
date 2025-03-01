@@ -26,6 +26,18 @@ pub enum Instruction<'a> {
         str_repr: String,
         src: Source<'a>,
     },
+
+    MultI {
+        operand1: MemLoc,
+        str_repr: String,
+        src: Source<'a>,
+    },
+
+    DivI {
+        operand1: MemLoc,
+        str_repr: String,
+        src: Source<'a>,
+    },
 }
 
 impl<'a> Instruction<'a> {
@@ -51,7 +63,7 @@ impl<'a> Instruction<'a> {
 
     pub fn addi(operand1: MemLoc, src: Source<'a>) -> Self {
         let var1: &str = operand1.ident();
-        let str_repr: String = format!("LoadWV {}", var1);
+        let str_repr: String = format!("AddI {}", var1);
         Self::AddI {
             operand1,
             str_repr,
@@ -61,8 +73,28 @@ impl<'a> Instruction<'a> {
 
     pub fn subi(operand1: MemLoc, src: Source<'a>) -> Self {
         let var1: &str = operand1.ident();
-        let str_repr: String = format!("LoadWV {}", var1);
+        let str_repr: String = format!("SubI {}", var1);
         Self::SubI {
+            operand1,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn multi(operand1: MemLoc, src: Source<'a>) -> Self {
+        let var1: &str = operand1.ident();
+        let str_repr: String = format!("MultI {}", var1);
+        Self::MultI {
+            operand1,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn divi(operand1: MemLoc, src: Source<'a>) -> Self {
+        let var1: &str = operand1.ident();
+        let str_repr: String = format!("DivI {}", var1);
+        Self::DivI {
             operand1,
             str_repr,
             src,
