@@ -18,7 +18,7 @@ pub enum Instruction<'a> {
 
 impl<'a> Instruction<'a> {
 
-    pub fn loadWV_instruction(operand1: MemLoc, src: Source<'a>) -> Self {
+    pub fn loadwv_instruction(operand1: MemLoc, src: Source<'a>) -> Self {
         let var1: &str = operand1.ident();
         let str_repr: String = format!("LoadWV {}", var1);
         Self::LoadWV {
@@ -28,7 +28,7 @@ impl<'a> Instruction<'a> {
         }
     }
 
-    pub fn loadW_instruction(operand1: MemLoc, src: Source<'a>) -> Self {
+    pub fn loadw_instruction(operand1: MemLoc, src: Source<'a>) -> Self {
         let var1: &str = operand1.ident();
         let str_repr: String = format!("LoadW {}", var1);
         Self::LoadW {
