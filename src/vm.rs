@@ -41,6 +41,11 @@ impl<'a> Vm<'a> {
                     str_repr,
                     src,
                 } => (self.execute_load_wv(operand1), str_repr, src),
+                Instruction::AddI {
+                    operand1,
+                    str_repr,
+                    src,
+                } => (self.execute_addi(operand1), str_repr, src),
                 _ => todo!("implement other instructions executions"),
             };
             if let (Err(error), str_repr, src) = result {
@@ -65,6 +70,25 @@ impl<'a> Vm<'a> {
                 Ok(())
             }
             MemLoc::Const(ident) => Err(format!("{} expected variable, found const", ident)),
+        }
+    }
+
+    fn execute_addi(&self, operand1: &MemLoc) -> Result<(), String> {
+        let value = self.search_ident(&operand1)?;
+        if let Vobj::Int(value1) = *value {
+            let vobj_value = if let Vobj::Int(value2) = *self.accu.borrow().clone() {
+                Ok(value2)
+            } else {
+                Err("the accumlator valuemust be of type Int".to_owned())
+            };
+            if let Ok(value2) = vobj_value {
+                *self.accu.borrow_mut() = Rc::new(Vobj::Int(value1 + value2));
+                Ok(())
+            } else {
+                Err("the accumlator valuemust be of type Int".to_owned())
+            }
+        } else {
+            Err(format!("the operand {} must be of type Int", operand1))
         }
     }
 
@@ -99,7 +123,7 @@ mod test {
     fn vm_loadw_test() {
         let operand1 = MemLoc::memloc_const("const1".to_owned());
         let src = Source::new("", 0);
-        let inst = Instruction::loadW_instruction(operand1.clone(), src);
+        let inst = Instruction::loadw_instruction(operand1.clone(), src);
         let code = vec![inst];
         let mut consts = HashMap::new();
         consts.insert("const1", Rc::new(Vobj::Int(3)));
@@ -113,8 +137,8 @@ mod test {
         let operand1 = MemLoc::memloc_const("const1".to_owned());
         let var1 = MemLoc::memloc_var("var1".to_owned());
         let src = Source::new("", 0);
-        let inst1 = Instruction::loadW_instruction(operand1, src.clone());
-        let inst2 = Instruction::loadWV_instruction(var1, src);
+        let inst1 = Instruction::loadw_instruction(operand1, src.clone());
+        let inst2 = Instruction::loadwv_instruction(var1, src);
         let code = vec![inst1, inst2];
         let mut consts = HashMap::new();
         consts.insert("const1", Rc::new(Vobj::Int(3)));
@@ -126,5 +150,19 @@ mod test {
         } else {
             assert!(false);
         };
+    }
+
+    #[test]
+    fn vm_addi_test() {
+        let operand1 = MemLoc::memloc_const("const1".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(operand1.clone(), src.clone());
+        let inst2 = Instruction::addi(operand1.clone(), src);
+        let code = vec![inst1, inst2];
+        let mut consts = HashMap::new();
+        consts.insert("const1", Rc::new(Vobj::Int(3)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Int(6));
     }
 }
