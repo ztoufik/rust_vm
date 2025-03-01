@@ -20,6 +20,12 @@ pub enum Instruction<'a> {
         str_repr: String,
         src: Source<'a>,
     },
+
+    SubI {
+        operand1: MemLoc,
+        str_repr: String,
+        src: Source<'a>,
+    },
 }
 
 impl<'a> Instruction<'a> {
@@ -47,6 +53,16 @@ impl<'a> Instruction<'a> {
         let var1: &str = operand1.ident();
         let str_repr: String = format!("LoadWV {}", var1);
         Self::AddI {
+            operand1,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn subi(operand1: MemLoc, src: Source<'a>) -> Self {
+        let var1: &str = operand1.ident();
+        let str_repr: String = format!("LoadWV {}", var1);
+        Self::SubI {
             operand1,
             str_repr,
             src,
