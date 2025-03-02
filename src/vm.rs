@@ -83,6 +83,7 @@ impl<'a> Vm<'a> {
                     src,
                 } => (self.execute_divi(operand1), str_repr, src),
                 Instruction::Br {br_index,str_repr,src} => (self.execute_br(*br_index),str_repr,src),
+                Instruction::Beq {operand,br_index,str_repr,src} => (self.execute_beq(operand,*br_index),str_repr,src),
                 _ => todo!("implement other instructions executions"),
             };
             if let (Err(error), str_repr, src) = result {
@@ -279,7 +280,20 @@ impl<'a> Vm<'a> {
         if br_index>=self.code.len()
         {return Err("invalid instruction index: out of bound".to_owned())}
 
-        self.pc.set(br_index);
+        self.pc.set(br_index-1);
+        Ok(())
+
+    }
+
+    fn execute_beq(&self,operand:&MemLoc,br_index:usize) -> Result<(), String> {
+        if br_index>=self.code.len()
+        {return Err("invalid instruction index: out of bound".to_owned())}
+
+        let value1=self.search_ident(&operand)?;
+        let value2=self.accu.borrow();
+        if *value1==**value2{
+            self.pc.set(br_index-1);
+        }
         Ok(())
 
     }
@@ -572,5 +586,28 @@ mod test {
         let mut vm = Vm::load(consts, code);
         vm.run();
         assert_eq!(**(vm.accu.get_mut()), Vobj::Int(40));
+    }
+
+    #[test]
+    fn vm_beq_test() {
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let cond = MemLoc::reserve_const("cond".to_owned());
+        let const4 = MemLoc::reserve_const("const4".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(const1, src.clone());
+        let inst2 = Instruction::addi(const2.clone(), src.clone());
+        let inst3 = Instruction::beq(cond,4, src.clone());
+        let inst4 = Instruction::addi(const2, src.clone());
+        let inst5 = Instruction::addi(const4, src.clone());
+        let code = vec![inst1, inst2, inst3, inst4,inst5];
+        let mut consts = HashMap::new();
+        consts.insert("const1", Rc::new(Vobj::Int(10)));
+        consts.insert("const2", Rc::new(Vobj::Int(20)));
+        consts.insert("cond", Rc::new(Vobj::Int(30)));
+        consts.insert("const4", Rc::new(Vobj::Int(40)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Int(70));
     }
 }
