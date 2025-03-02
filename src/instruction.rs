@@ -62,6 +62,12 @@ pub enum Instruction<'a> {
         str_repr: String,
         src: Source<'a>,
     },
+
+    Br {
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
 }
 
 impl<'a> Instruction<'a> {
@@ -164,4 +170,13 @@ impl<'a> Instruction<'a> {
         }
     }
 
+    pub fn br(br_index:usize,src: Source<'a>) -> Self {
+        let var1= br_index.to_string();
+        let str_repr: String = format!("Br {}", var1);
+        Self::Br {
+            br_index,
+            str_repr,
+            src,
+        }
+    }
 }

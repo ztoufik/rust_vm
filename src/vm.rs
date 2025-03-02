@@ -12,6 +12,7 @@ pub struct Vm<'a> {
     consts: HashMap<&'a str, Rc<Vobj>>,
     accu: RefCell<Rc<Vobj>>,
     code: Vec<Instruction<'a>>,
+    pc: Cell<usize>,
 }
 
 impl<'a> Vm<'a> {
@@ -23,14 +24,14 @@ impl<'a> Vm<'a> {
             consts,
             accu,
             code,
+            pc: Cell::new(0),
         }
     }
 
     pub fn run(&'a self) -> Result<(), String> {
         let len = self.code.len();
-        for index in 0..len {
-            //let result = match self.code[index].clone() {
-            let result = match &self.code[index] {
+        while self.pc.get() < len {
+            let result = match &self.code[self.pc.get()] {
                 Instruction::LoadW {
                     operand1,
                     str_repr,
@@ -81,11 +82,21 @@ impl<'a> Vm<'a> {
                     str_repr,
                     src,
                 } => (self.execute_divi(operand1), str_repr, src),
+                Instruction::Br { .. } => todo!("implement other instructions executions"),
                 _ => todo!("implement other instructions executions"),
             };
             if let (Err(error), str_repr, src) = result {
-                return Err(format!("{} -> {} {} ({})", error, index, str_repr, src));
+                return Err(format!(
+                    "{} -> {} {} ({})",
+                    error,
+                    self.pc.get(),
+                    str_repr,
+                    src
+                ));
             }
+            let current_index = self.pc.get();
+            print!("\n****************{}***********\n", current_index);
+            self.pc.set(current_index + 1);
         }
         Ok(())
     }
@@ -337,7 +348,7 @@ mod test {
         consts.insert("const1", Rc::new(Vobj::Double(0.13)));
         let mut vm = Vm::load(consts, code);
         vm.run();
-        assert_eq!(**(vm.accu.get_mut()), Vobj::Double(0.13*2.0));
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Double(0.13 * 2.0));
     }
 
     #[test]
