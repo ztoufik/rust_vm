@@ -6,11 +6,11 @@ pub enum MemLoc {
 }
 
 impl MemLoc {
-    pub fn memloc_const(value:String) -> Self {
+    pub fn reserve_const(value:String) -> Self {
         MemLoc::Const(value)
     }
 
-    pub fn memloc_var(value:String) -> Self {
+    pub fn reserve_var(value:String) -> Self {
         MemLoc::Var(value)
     }
 

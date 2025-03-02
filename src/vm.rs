@@ -82,7 +82,7 @@ impl<'a> Vm<'a> {
                     str_repr,
                     src,
                 } => (self.execute_divi(operand1), str_repr, src),
-                Instruction::Br { .. } => todo!("implement other instructions executions"),
+                Instruction::Br {br_index,str_repr,src} => (self.execute_br(*br_index),str_repr,src),
                 _ => todo!("implement other instructions executions"),
             };
             if let (Err(error), str_repr, src) = result {
@@ -94,9 +94,7 @@ impl<'a> Vm<'a> {
                     src
                 ));
             }
-            let current_index = self.pc.get();
-            print!("\n****************{}***********\n", current_index);
-            self.pc.set(current_index + 1);
+            self.pc.set(self.pc.get()+ 1);
         }
         Ok(())
     }
@@ -277,6 +275,15 @@ impl<'a> Vm<'a> {
         }
     }
 
+    fn execute_br(&self,br_index:usize) -> Result<(), String> {
+        if br_index>=self.code.len()
+        {return Err("invalid instruction index: out of bound".to_owned())}
+
+        self.pc.set(br_index);
+        Ok(())
+
+    }
+
     fn search_ident(&self, mem_loc: &MemLoc) -> Result<Rc<Vobj>, String> {
         match mem_loc {
             MemLoc::Const(ident) => {
@@ -297,6 +304,7 @@ impl<'a> Vm<'a> {
             }
         }
     }
+
 }
 
 #[cfg(test)]
@@ -306,7 +314,7 @@ mod test {
 
     #[test]
     fn vm_loadw_test() {
-        let operand1 = MemLoc::memloc_const("const1".to_owned());
+        let operand1 = MemLoc::reserve_const("const1".to_owned());
         let src = Source::new("", 0);
         let inst = Instruction::loadw_instruction(operand1.clone(), src);
         let code = vec![inst];
@@ -319,8 +327,8 @@ mod test {
 
     #[test]
     fn vm_loadwm_test() {
-        let operand1 = MemLoc::memloc_const("const1".to_owned());
-        let var1 = MemLoc::memloc_var("var1".to_owned());
+        let operand1 = MemLoc::reserve_const("const1".to_owned());
+        let var1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(operand1, src.clone());
         let inst2 = Instruction::loadwv_instruction(var1, src);
@@ -339,7 +347,7 @@ mod test {
 
     #[test]
     fn vm_addd_test() {
-        let operand1 = MemLoc::memloc_const("const1".to_owned());
+        let operand1 = MemLoc::reserve_const("const1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(operand1.clone(), src.clone());
         let inst2 = Instruction::addd(operand1.clone(), src);
@@ -353,9 +361,9 @@ mod test {
 
     #[test]
     fn vm_subd_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -372,9 +380,9 @@ mod test {
 
     #[test]
     fn vm_multd_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -391,9 +399,9 @@ mod test {
 
     #[test]
     fn vm_divd_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -410,9 +418,9 @@ mod test {
 
     #[test]
     fn vm_divibyzerod_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("test.zt", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -442,7 +450,7 @@ mod test {
 
     #[test]
     fn vm_addi_test() {
-        let operand1 = MemLoc::memloc_const("const1".to_owned());
+        let operand1 = MemLoc::reserve_const("const1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(operand1.clone(), src.clone());
         let inst2 = Instruction::addi(operand1.clone(), src);
@@ -456,9 +464,9 @@ mod test {
 
     #[test]
     fn vm_subi_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -475,9 +483,9 @@ mod test {
 
     #[test]
     fn vm_multi_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -494,9 +502,9 @@ mod test {
 
     #[test]
     fn vm_divi_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -513,9 +521,9 @@ mod test {
 
     #[test]
     fn vm_divibyzeroi_test() {
-        let const1 = MemLoc::memloc_const("const1".to_owned());
-        let const2 = MemLoc::memloc_const("const2".to_owned());
-        let operand1 = MemLoc::memloc_var("var1".to_owned());
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let operand1 = MemLoc::reserve_var("var1".to_owned());
         let src = Source::new("test.zt", 0);
         let inst1 = Instruction::loadw_instruction(const2, src.clone());
         let inst2 = Instruction::loadwv_instruction(operand1.clone(), src.clone());
@@ -541,5 +549,28 @@ mod test {
         } else {
             assert!(false);
         };
+    }
+
+    #[test]
+    fn vm_br_test() {
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let const3 = MemLoc::reserve_const("const3".to_owned());
+        let const4 = MemLoc::reserve_const("const4".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(const1, src.clone());
+        let inst2 = Instruction::loadw_instruction(const2, src.clone());
+        let inst3 = Instruction::br(3, src.clone());
+        let inst4 = Instruction::loadw_instruction(const3, src.clone());
+        let inst5 = Instruction::loadw_instruction(const4, src.clone());
+        let code = vec![inst1, inst2, inst3, inst4,inst5];
+        let mut consts = HashMap::new();
+        consts.insert("const1", Rc::new(Vobj::Int(10)));
+        consts.insert("const2", Rc::new(Vobj::Int(20)));
+        consts.insert("const3", Rc::new(Vobj::Int(30)));
+        consts.insert("const4", Rc::new(Vobj::Int(40)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Int(40));
     }
 }
