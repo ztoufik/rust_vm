@@ -75,6 +75,13 @@ pub enum Instruction<'a> {
         str_repr: String,
         src: Source<'a>,
     },
+
+    Bnq {
+        operand: MemLoc,
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
 }
 
 impl<'a> Instruction<'a> {
@@ -191,6 +198,17 @@ impl<'a> Instruction<'a> {
         let var1 = br_index.to_string();
         let str_repr: String = format!("Beq {}", var1);
         Self::Beq {
+            operand,
+            br_index,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn bnq(operand: MemLoc, br_index: usize, src: Source<'a>) -> Self {
+        let var1 = br_index.to_string();
+        let str_repr: String = format!("Bnq {}", var1);
+        Self::Bnq {
             operand,
             br_index,
             str_repr,
