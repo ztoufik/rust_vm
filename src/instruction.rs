@@ -82,6 +82,40 @@ pub enum Instruction<'a> {
         str_repr: String,
         src: Source<'a>,
     },
+
+    Bg {
+        operand: MemLoc,
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
+
+    Bge {
+        operand: MemLoc,
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
+
+    Blt {
+        operand: MemLoc,
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
+
+    Ble {
+        operand: MemLoc,
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
+    Bgt {
+        operand: MemLoc,
+        br_index: usize,
+        str_repr: String,
+        src: Source<'a>,
+    },
 }
 
 impl<'a> Instruction<'a> {
@@ -209,6 +243,50 @@ impl<'a> Instruction<'a> {
         let var1 = br_index.to_string();
         let str_repr: String = format!("Bnq {}", var1);
         Self::Bnq {
+            operand,
+            br_index,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn bgt(operand: MemLoc, br_index: usize, src: Source<'a>) -> Self {
+        let var1 = br_index.to_string();
+        let str_repr: String = format!("Bgt {}", var1);
+        Self::Bg {
+            operand,
+            br_index,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn bge(operand: MemLoc, br_index: usize, src: Source<'a>) -> Self {
+        let var1 = br_index.to_string();
+        let str_repr: String = format!("Bge {}", var1);
+        Self::Bge {
+            operand,
+            br_index,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn blt(operand: MemLoc, br_index: usize, src: Source<'a>) -> Self {
+        let var1 = br_index.to_string();
+        let str_repr: String = format!("Blt {}", var1);
+        Self::Blt {
+            operand,
+            br_index,
+            str_repr,
+            src,
+        }
+    }
+
+    pub fn ble(operand: MemLoc, br_index: usize, src: Source<'a>) -> Self {
+        let var1 = br_index.to_string();
+        let str_repr: String = format!("Ble {}", var1);
+        Self::Ble {
             operand,
             br_index,
             str_repr,

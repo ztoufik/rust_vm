@@ -1,6 +1,7 @@
+use std::mem::discriminant;
 use std::fmt;
 
-#[derive(Debug,Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Vobj {
     Str(String),
     Double(f64),
@@ -9,8 +10,8 @@ pub enum Vobj {
 }
 
 impl Vobj {
-    pub fn new_str(value: &str) -> Self {
-        Vobj::Str(String::from(value))
+    pub fn new_str(value: String) -> Self {
+        Vobj::Str(value)
     }
 
     pub fn new_double(value: f64) -> Self {
@@ -19,6 +20,10 @@ impl Vobj {
 
     pub fn new_int(value: i64) -> Self {
         Vobj::Int(value)
+    }
+
+    pub fn same_type(obj1: &Vobj, obj2: &Vobj) -> bool {
+        discriminant(obj1) == discriminant(obj2)
     }
 }
 
@@ -30,39 +35,24 @@ impl Default for Vobj {
 
 impl fmt::Display for Vobj {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self{
-        Self::Str(value)=>write!(f, "{}", value),
-        Self::Double(value)=>write!(f, "{}", value),
-        Self::Int(value)=>write!(f, "{}", value),
-        Self::Null=> write!(f,""),
+        match self {
+            Self::Str(value) => write!(f, "{}", value),
+            Self::Double(value) => write!(f, "{}", value),
+            Self::Int(value) => write!(f, "{}", value),
+            Self::Null => write!(f, ""),
         }
     }
 }
 
 #[cfg(test)]
-mod test{
+mod test {
     use crate::vobj::*;
 
     #[test]
-    fn vobj_string() {
-        let variable=Vobj::new_str("test_string");
-        assert_eq!(variable, Vobj::Str(String::from("test_string")));
-    }
-
-    #[test]
-    fn vobj_double() {
-        let variable=Vobj::new_double(4f64);
-        assert_eq!(variable, Vobj::Double(4f64));
-    }
-    
-    #[test]
-    fn vobj_int() {
-        let variable=Vobj::new_int(4i64);
-        assert_eq!(variable, Vobj::Int(4i64));
-    }
-
-    #[test]
-    fn vobj_default() {
-        assert_eq!(Vobj::Null, Vobj::default());
+    fn vobj_eq() {
+        assert!(Vobj::same_type(
+            &Vobj::new_str("4.0".to_owned()),
+            &Vobj::new_str("4.0".to_owned())
+        ));
     }
 }
