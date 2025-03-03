@@ -104,7 +104,25 @@ impl<'a> Vm<'a> {
                     br_index,
                     str_repr,
                     src,
-                } => (self.execute_bg(operand, *br_index), str_repr, src),
+                } => (self.execute_bgt(operand, *br_index), str_repr, src),
+                Instruction::Bge {
+                    operand,
+                    br_index,
+                    str_repr,
+                    src,
+                } => (self.execute_bge(operand, *br_index), str_repr, src),
+                Instruction::Blt {
+                    operand,
+                    br_index,
+                    str_repr,
+                    src,
+                } => (self.execute_blt(operand, *br_index), str_repr, src),
+                Instruction::Ble {
+                    operand,
+                    br_index,
+                    str_repr,
+                    src,
+                } => (self.execute_ble(operand, *br_index), str_repr, src),
                 _ => todo!("implement other instructions executions"),
             };
             if let (Err(error), str_repr, src) = result {
@@ -332,7 +350,7 @@ impl<'a> Vm<'a> {
         Ok(())
     }
 
-    fn execute_bg(&self, operand: &MemLoc, br_index: usize) -> Result<(), String> {
+    fn execute_bgt(&self, operand: &MemLoc, br_index: usize) -> Result<(), String> {
         if br_index >= self.code.len() {
             return Err("invalid instruction index: out of bound".to_owned());
         }
@@ -358,6 +376,123 @@ impl<'a> Vm<'a> {
             Vobj::Str(value1) => {
                 if let Vobj::Str(value2) = &**value2 {
                     Ok(*value1 > *value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+            Vobj::Null => Err("operand has value Null".to_owned()),
+        };
+        let result = result?;
+        if result {
+            self.pc.set(br_index - 1);
+        }
+        Ok(())
+    }
+
+    fn execute_bge(&self, operand: &MemLoc, br_index: usize) -> Result<(), String> {
+        if br_index >= self.code.len() {
+            return Err("invalid instruction index: out of bound".to_owned());
+        }
+
+        let value1 = self.search_ident(&operand)?;
+        let value2 = self.accu.borrow();
+        let result = match &*value1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = **value2 {
+                    Ok(*value1 >= value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+            Vobj::Int(value1) => {
+                if let Vobj::Int(value2) = **value2 {
+                    Ok(*value1 >= value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+
+            Vobj::Str(value1) => {
+                if let Vobj::Str(value2) = &**value2 {
+                    Ok(*value1 >= *value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+            Vobj::Null => Err("operand has value Null".to_owned()),
+        };
+        let result = result?;
+        if result {
+            self.pc.set(br_index - 1);
+        }
+        Ok(())
+    }
+
+    fn execute_blt(&self, operand: &MemLoc, br_index: usize) -> Result<(), String> {
+        if br_index >= self.code.len() {
+            return Err("invalid instruction index: out of bound".to_owned());
+        }
+
+        let value1 = self.search_ident(&operand)?;
+        let value2 = self.accu.borrow();
+        let result = match &*value1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = **value2 {
+                    Ok(*value1 < value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+            Vobj::Int(value1) => {
+                if let Vobj::Int(value2) = **value2 {
+                    Ok(*value1 < value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+
+            Vobj::Str(value1) => {
+                if let Vobj::Str(value2) = &**value2 {
+                    Ok(*value1 < *value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+            Vobj::Null => Err("operand has value Null".to_owned()),
+        };
+        let result = result?;
+        if result {
+            self.pc.set(br_index - 1);
+        }
+        Ok(())
+    }
+
+    fn execute_ble(&self, operand: &MemLoc, br_index: usize) -> Result<(), String> {
+        if br_index >= self.code.len() {
+            return Err("invalid instruction index: out of bound".to_owned());
+        }
+
+        let value1 = self.search_ident(&operand)?;
+        let value2 = self.accu.borrow();
+        let result = match &*value1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = **value2 {
+                    Ok(*value1 <= value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+            Vobj::Int(value1) => {
+                if let Vobj::Int(value2) = **value2 {
+                    Ok(*value1 <= value2)
+                } else {
+                    Err("both accumlator & operand must have the same type".to_owned())
+                }
+            }
+
+            Vobj::Str(value1) => {
+                if let Vobj::Str(value2) = &**value2 {
+                    Ok(*value1 <= *value2)
                 } else {
                     Err("both accumlator & operand must have the same type".to_owned())
                 }
@@ -723,6 +858,75 @@ mod test {
         consts.insert("const1", Rc::new(Vobj::Double(10.0)));
         consts.insert("const2", Rc::new(Vobj::Double(20.0)));
         consts.insert("cond", Rc::new(Vobj::Double(30.1)));
+        consts.insert("const4", Rc::new(Vobj::Double(40.0)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Double(70.0));
+    }
+
+    #[test]
+    fn vm_bge_test() {
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let cond = MemLoc::reserve_const("cond".to_owned());
+        let const4 = MemLoc::reserve_const("const4".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(const1, src.clone());
+        let inst2 = Instruction::addd(const2.clone(), src.clone());
+        let inst3 = Instruction::bge(cond, 4, src.clone());
+        let inst4 = Instruction::addd(const2, src.clone());
+        let inst5 = Instruction::addd(const4, src.clone());
+        let code = vec![inst1, inst2, inst3, inst4, inst5];
+        let mut consts = HashMap::new();
+        consts.insert("const1", Rc::new(Vobj::Double(10.0)));
+        consts.insert("const2", Rc::new(Vobj::Double(20.0)));
+        consts.insert("cond", Rc::new(Vobj::Double(30.1)));
+        consts.insert("const4", Rc::new(Vobj::Double(40.0)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Double(70.0));
+    }
+
+    #[test]
+    fn vm_blt_test() {
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let cond = MemLoc::reserve_const("cond".to_owned());
+        let const4 = MemLoc::reserve_const("const4".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(const1, src.clone());
+        let inst2 = Instruction::addd(const2.clone(), src.clone());
+        let inst3 = Instruction::blt(cond, 4, src.clone());
+        let inst4 = Instruction::addd(const2, src.clone());
+        let inst5 = Instruction::addd(const4, src.clone());
+        let code = vec![inst1, inst2, inst3, inst4, inst5];
+        let mut consts = HashMap::new();
+        consts.insert("const1", Rc::new(Vobj::Double(10.0)));
+        consts.insert("const2", Rc::new(Vobj::Double(20.0)));
+        consts.insert("cond", Rc::new(Vobj::Double(10.0)));
+        consts.insert("const4", Rc::new(Vobj::Double(40.0)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Double(70.0));
+    }
+
+    #[test]
+    fn vm_ble_test() {
+        let const1 = MemLoc::reserve_const("const1".to_owned());
+        let const2 = MemLoc::reserve_const("const2".to_owned());
+        let cond = MemLoc::reserve_const("cond".to_owned());
+        let const4 = MemLoc::reserve_const("const4".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(const1, src.clone());
+        let inst2 = Instruction::addd(const2.clone(), src.clone());
+        let inst3 = Instruction::ble(cond, 4, src.clone());
+        let inst4 = Instruction::addd(const2, src.clone());
+        let inst5 = Instruction::addd(const4, src.clone());
+        let code = vec![inst1, inst2, inst3, inst4, inst5];
+        let mut consts = HashMap::new();
+        consts.insert("const1", Rc::new(Vobj::Double(10.0)));
+        consts.insert("const2", Rc::new(Vobj::Double(20.0)));
+        consts.insert("cond", Rc::new(Vobj::Double(30.0)));
         consts.insert("const4", Rc::new(Vobj::Double(40.0)));
         let mut vm = Vm::load(consts, code);
         vm.run();
