@@ -932,4 +932,27 @@ mod test {
         vm.run();
         assert_eq!(**(vm.accu.get_mut()), Vobj::Double(70.0));
     }
+
+    #[test]
+    fn vm_loop_test() {
+        let index = MemLoc::reserve_const("index".to_owned());
+        let one = MemLoc::reserve_const("one".to_owned());
+        let cond = MemLoc::reserve_const("cond".to_owned());
+        let const4 = MemLoc::reserve_const("const4".to_owned());
+        let src = Source::new("", 0);
+        let inst1 = Instruction::loadw_instruction(index, src.clone());
+        let inst2 = Instruction::addd(one.clone(), src.clone());
+        let inst3 = Instruction::ble(cond, 4, src.clone());
+        let inst4 = Instruction::addd(one, src.clone());
+        let inst5 = Instruction::addd(const4, src.clone());
+        let code = vec![inst1, inst2, inst3, inst4, inst5];
+        let mut consts = HashMap::new();
+        consts.insert("index", Rc::new(Vobj::Int(10)));
+        consts.insert("one", Rc::new(Vobj::Double(20.0)));
+        consts.insert("cond", Rc::new(Vobj::Double(30.0)));
+        consts.insert("const4", Rc::new(Vobj::Double(40.0)));
+        let mut vm = Vm::load(consts, code);
+        vm.run();
+        assert_eq!(**(vm.accu.get_mut()), Vobj::Double(70.0));
+    }
 }

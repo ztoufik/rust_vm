@@ -1,5 +1,6 @@
-use std::mem::discriminant;
 use std::fmt;
+
+use crate::err::VMError;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Vobj {
@@ -10,27 +11,294 @@ pub enum Vobj {
 }
 
 impl Vobj {
-    pub fn new_str(value: String) -> Self {
-        Vobj::Str(value)
+    pub fn add(oprand1: &Vobj, oprand2: &Vobj) -> Result<Vobj, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 + value2))
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 + value2 as f64))
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 as f64 + value2))
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(Vobj::Int(value1 + value2))
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
     }
 
-    pub fn new_double(value: f64) -> Self {
-        Vobj::Double(value)
+    pub fn sub(oprand1: &Vobj, oprand2: &Vobj) -> Result<Vobj, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 - value2))
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 - value2 as f64))
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 as f64 - value2))
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(Vobj::Int(value1 - value2))
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
     }
 
-    pub fn new_int(value: i64) -> Self {
-        Vobj::Int(value)
+    pub fn mul(oprand1: &Vobj, oprand2: &Vobj) -> Result<Vobj, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 * value2))
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 * value2 as f64))
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(Vobj::Double(value1 as f64 * value2))
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(Vobj::Int(value1 * value2))
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
     }
 
-    pub fn same_type(obj1: &Vobj, obj2: &Vobj) -> bool {
-        discriminant(obj1) == discriminant(obj2)
+    pub fn div(oprand1: &Vobj, oprand2: &Vobj) -> Result<Vobj, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    if value2 == 0.0 {
+                        Err(VMError::DivisionByZeroErr)
+                    } else {
+                        Ok(Vobj::Double(value1 / value2))
+                    }
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    if value2 == 0 {
+                        Err(VMError::DivisionByZeroErr)
+                    } else {
+                        Ok(Vobj::Double(value1 / value2 as f64))
+                    }
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    if value2 == 0.0 {
+                        Err(VMError::DivisionByZeroErr)
+                    } else {
+                        Ok(Vobj::Double(value1 as f64 / value2))
+                    }
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    if value2 == 0 {
+                        Err(VMError::DivisionByZeroErr)
+                    } else {
+                        Ok(Vobj::Int(value1 / value2))
+                    }
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
     }
+
+    pub fn greater_than(oprand1: &Vobj, oprand2: &Vobj) -> Result<bool, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1>value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1>value2 as f64)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1 as f64>value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1 >value2)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
+    }
+
+    pub fn greater_eq(oprand1: &Vobj, oprand2: &Vobj) -> Result<bool, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1>=value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1>=value2 as f64)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1 as f64>=value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1 >=value2)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
+    }
+
+    pub fn less_than(oprand1: &Vobj, oprand2: &Vobj) -> Result<bool, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1<value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1<value2 as f64)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok((value1 as f64) < value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1 <value2)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
+    }
+
+    pub fn less_eq(oprand1: &Vobj, oprand2: &Vobj) -> Result<bool, VMError> {
+        match *oprand1 {
+            Vobj::Double(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1<=value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1<=value2 as f64)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+
+            Vobj::Int(value1) => {
+                if let Vobj::Double(value2) = *oprand2 {
+                    Ok(value1 as f64<=value2)
+                } else if let Vobj::Int(value2) = *oprand2 {
+                    Ok(value1 <=value2)
+                } else {
+                    Err(VMError::IncorrectArgumentErr(String::from(
+                        "Expected numerical type",
+                    )))
+                }
+            }
+            _ => Err(VMError::IncorrectArgumentErr(String::from(
+                "Expected numerical type",
+            ))),
+        }
+    }
+
 }
 
 impl Default for Vobj {
     fn default() -> Self {
         Vobj::Null
     }
+}
+
+impl From<f64> for Vobj {
+   fn from(value: f64) -> Self {
+       Vobj::Double(value) 
+    } 
+}
+
+impl From<i64> for Vobj {
+   fn from(value: i64) -> Self {
+       Vobj::Int(value) 
+    } 
+}
+
+impl From<&str> for Vobj {
+   fn from(value: &str) -> Self {
+       Vobj::Str(String::from(value))
+    } 
 }
 
 impl fmt::Display for Vobj {
@@ -41,18 +309,5 @@ impl fmt::Display for Vobj {
             Self::Int(value) => write!(f, "{}", value),
             Self::Null => write!(f, ""),
         }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::vobj::*;
-
-    #[test]
-    fn vobj_eq() {
-        assert!(Vobj::same_type(
-            &Vobj::new_str("4.0".to_owned()),
-            &Vobj::new_str("4.0".to_owned())
-        ));
     }
 }
