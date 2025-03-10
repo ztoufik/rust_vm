@@ -21,8 +21,17 @@ impl<'a> fmt::Display for Source<'a> {
     }
 }
 
-#[derive(Debug, Clone,PartialEq,Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VMError {
     IncorrectArgumentErr(String),
     DivisionByZeroErr,
+}
+
+impl Into<String> for VMError {
+    fn into(self) -> String {
+        match self {
+            VMError::IncorrectArgumentErr(msg) => format!("incorrect argument error: {}", msg),
+            VMError::DivisionByZeroErr => "Division by zero error".to_string(),
+        }
+    }
 }
